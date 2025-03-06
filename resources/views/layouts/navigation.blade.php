@@ -21,6 +21,9 @@
                     <x-nav-link :href="route('belanja')" onclick="navigateTo('{{ route('belanja') }}')">
                         {{ __('Daftar Belanja') }}
                     </x-nav-link>
+                    <x-nav-link :href="route('belanja')" onclick="navigateTo('{{ route('belanja') }}')">
+                        {{ __('Supplier') }}
+                    </x-nav-link>
                 </div>
             </div>
 

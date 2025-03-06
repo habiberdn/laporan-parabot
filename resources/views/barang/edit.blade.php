@@ -5,7 +5,7 @@
         </h2>
     </x-slot>
 
-    <div class="  p-6 flex w-full">
+    <div class="p-6 flex w-full">
         <div class="bg-white w-full rounded-lg flex flex-col  shadow-lg p-6">
 
             <form action="{{ route('barang.update', $barang->id) }}" method="POST" enctype="multipart/form-data">
