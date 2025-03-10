@@ -78,12 +78,17 @@
 
                 <div class="mb-2">
                     <label for="supplier" class="block text-gray-700 font-bold mb-2">Supplier</label>
-                    <input type="text" name="supplier" id="supplier"
-                        class="w-[80%] px-3  border rounded-lg @error('supplier') border-red-500 @enderror"
-                        value="{{ old('supplier') }}" required>
-                    @error('supplier')
-                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                    @enderror
+                    <div class="mb-4 flex flex-col">
+                        <select name="supplier" id="supplier"
+                            class="w-[80%] px-3  border rounded-lg @error('supplier') border-red-500 @enderror">
+                            <option value="">Pilih Supplier</option>
+                            @foreach ($suppliers as $supplier)
+                                <option value="{{ $supplier->nama }}">
+                                    {{ $supplier->nama }} <!-- Assuming the Supplier model has a "nama" field -->
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
 
                 <div class="mb-2">
@@ -111,29 +116,11 @@
         const imagePreview = document.getElementById('image-preview');
         const previewContent = document.getElementById('preview-content');
         const imageContainer = document.getElementById('image-container');
+        let isSubmitting = false;
         window.isFormDirty = false; // Flag to track if the form has unsaved changes
-        console.log(window)
-        // Mark the form as dirty when any input changes
-        document.querySelector('form').addEventListener('input', function() {
-            console.log("trigger")
-        });
-
-        document.querySelector('form').addEventListener('change', function() {
-            console.log("trigger")
-            // window.isFormDirty = true;
-        });
-
-        // Show alert when trying to leave the page with unsaved changes
-        window.addEventListener('beforeunload', function(e) {
-            if (window.isFormDirty) {
-                const confirmationMessage = 'You have unsaved changes. Do you really want to leave?';
-                e.returnValue = confirmationMessage;
-                return confirmationMessage;
-            }
-        });
 
         document.addEventListener('DOMContentLoaded', function() {
-            const formInputs = document.querySelectorAll('input, textarea');
+            const formInputs = document.querySelectorAll('input, textarea', 'option', 'select');
 
             // Add change event listener to each input
             formInputs.forEach(input => {
@@ -145,49 +132,39 @@
                     if (this.value !== originalValue) {
                         window.isFormDirty = true;
 
-                        alert('Input field "' + (this.name || this.id) + '" has been changed!');
-                    }
-                });
-            });
-            const navigationLinks = document.querySelectorAll('a:not([href^="#"])');
-            navigationLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    if (isFormDirty && !confirm(
-                            'You have unsaved changes. Do you really want to leave?')) {
-                        e.preventDefault(); // Prevent navigation if user cancels
+                        // alert('Input field "' + (this.name || this.id) + '" has been changed!');
                     }
                 });
             });
         });
 
-        if (typeof window !== 'undefined') {
-            window.addEventListener('click', function(e) {
-                // Check if the clicked element is a link
-                let target = e.target;
-                while (target && target !== document) {
-                    if (target.tagName === 'A' &&
-                        target.getAttribute('href') &&
-                        !target.getAttribute('href').startsWith('#') &&
-                        !target.getAttribute('href').startsWith('javascript:')) {
+        window.addEventListener('beforeunload', (e) => {
+            if (!isSubmitting && window.isFormDirty) {
+                e.preventDefault();
+                e.returnValue = '';
+                return '';
+            }
+        });
 
-                        // If it's a navigation link and form is dirty, show confirmation
-                        if (isFormDirty && !confirm('You have unsaved changes. Do you really want to leave?')) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            return false;
-                        }
+        document.querySelector('form').addEventListener('submit', () => {
+            isSubmitting = true; // Mark form as submitting
+            window.isFormDirty = false;
+        });
+
+        document.querySelectorAll('a, button.cancel-button').forEach(element => {
+            element.addEventListener('click', (e) => {
+                if (window.isFormDirty) {
+                    if (!confirm('You have unsaved changes. Leave anyway?')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    } else {
+                        window.isFormDirty = false;
                     }
-                    target = target.parentNode;
                 }
-            }, true);
-        }
-        uploadInput.addEventListener('click', (event) => {
-            console.log(event.target);
+            });
         });
 
         uploadInput.addEventListener('change', (event) => {
-            console.log("trigger")
-
             const file = event.target.files[0];
             if (file) {
                 filenameLabel.textContent = file.name;

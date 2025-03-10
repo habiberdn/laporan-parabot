@@ -11,10 +11,13 @@ class SupplierController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        return view('supplier.index');
+        $supplier = Supplier::all();
+        return view('barang.add',compact('supplier'));
     }
+
+    
 
     /**
      * Show the form for creating a new resource.
@@ -29,12 +32,12 @@ class SupplierController extends Controller
         try {
             // Validate first
             $validated = $request->validate([
-                'nama' => 'required|string|max:255|unique:barangs,nama',
+                'nama' => 'required|string|max:255|unique:suppliers,nama', // Changed from barangs to suppliers
             ]);
-
+    
             Supplier::create($validated);
-
-            return redirect()->route('dashboard')->with('success', 'Supplier berhasil ditambahkan');
+    
+            return redirect()->route('supplier')->with('success', 'Supplier berhasil ditambahkan');
         } catch (ValidationException $e) {
             throw $e;
         } catch (\Exception $e) {
@@ -44,6 +47,7 @@ class SupplierController extends Controller
             ]);
         }
     }
+    
 
     /**
      * Display the specified resource.

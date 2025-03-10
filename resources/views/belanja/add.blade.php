@@ -66,7 +66,8 @@
 
                     <div class="mb-2">
                         <label for="stok" class="block text-gray-700 font-bold mb-2">Stok</label>
-                        <select name="stok" id="stok"   class="w-[80%] px-3  border rounded-lg @error('stok') border-red-500 @enderror">
+                        <select name="stok" id="stok"
+                            class="w-[80%] px-3  border rounded-lg @error('stok') border-red-500 @enderror">
                             <option value="">Pilih Stok</option>
                             <option value="ada">Ada</option>
                             <option value="kosong">Kosong</option>
@@ -77,15 +78,22 @@
                         @enderror
                     </div>
 
-
                     <div class="mb-2">
                         <label for="pemasok" class="block text-gray-700 font-bold mb-2">Pemasok</label>
-                        <input type="text" name="pemasok" id="pemasok"
-                            class="w-[80%] px-3  border rounded-lg @error('pemasok') border-red-500 @enderror"
-                            value="{{ old('pemasok') }}" required>
-                        @error('pemasok')
-                            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                        @enderror
+                        <div class="mb-4 flex flex-col">
+                            <select name="pemasok" id="supplier"
+                                class="w-[80%] px-3  border rounded-lg @error('pemasok') border-red-500 @enderror">
+                                <option value="">Pilih Supplier</option>
+                                @foreach ($suppliers as $supplier)
+                                    <option value="{{ $supplier->nama }}">
+                                        {{ $supplier->nama }} <!-- Assuming the Supplier model has a "nama" field -->
+                                    </option>
+                                @endforeach
+                            </select>
+                            @error('pemasok')
+                                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
 

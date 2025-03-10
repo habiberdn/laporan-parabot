@@ -8,6 +8,7 @@ use Intervention\Image\ImageManager;
 use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Barang;
+use App\Models\supplier; // Add this at the top
 
 class BarangController extends Controller
 {
@@ -20,6 +21,33 @@ class BarangController extends Controller
         return view('barang.dashboard', compact('my_products'));
     }
 
+    public function addToCart(Request $request)
+    {
+        $product = Barang::findOrFail($request->id);
+
+        $cart = $request->session()->get('cart', []);
+
+        if (isset($cart[$product->id])) {
+            $cart[$product->id]['quantity']++;
+        } else {
+            $cart[$product->id] = [
+                "nama" => $product->nama,
+                "harga" => $request->harga,
+                "supplier" => $product->supplier,
+                "image" => $product->images
+            ];
+        }
+
+        $request->session()->put('cart', $cart);
+
+        $cart_products = collect(request()->session()->get('cart'));
+
+        $renderHTML = view('barang.cart', compact('cart_products'))->render();
+        $total_products_count = count(request()->session()->get('cart'));
+        return response()->json(['renderHTML' => $renderHTML, 'total_products_count' => $total_products_count], 200);
+    }
+
+
     public function search(Request $request)
     {
         $keyword = $request->input('search');
@@ -29,6 +57,12 @@ class BarangController extends Controller
         return view('barang.search', [
             'barangs' => $barang
         ]);
+    }
+
+    public function getSupplier()
+    {
+        $suppliers = Supplier::all();
+        return view('barang.add', compact('suppliers'));
     }
 
     /**

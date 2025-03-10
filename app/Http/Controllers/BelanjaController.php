@@ -8,6 +8,7 @@ use Intervention\Image\ImageManager;
 use Illuminate\Http\Request;
 use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Storage;
+use App\Models\supplier;
 
 class BelanjaController extends Controller
 {
@@ -20,27 +21,33 @@ class BelanjaController extends Controller
 
         // Search filter
         if ($request->has('search')) {
-            $query->where('nama_barang', 'like', '%'.$request->search.'%');
+            $query->where('nama_barang', 'like', '%' . $request->search . '%');
         }
-    
+
         // Stock filter
         if ($request->has('stok') && in_array($request->stok, ['ada', 'kosong'])) {
             $query->where('stok', $request->stok);
         }
-    
+
         // Pemasok filter
         if ($request->has('pemasok') && $request->pemasok != '') {
             $query->where('pemasok', $request->pemasok);
         }
-    
+
         // Get unique pemasok list for dropdown
         $pemasokList = Belanja::distinct()->pluck('pemasok');
-    
+
         $belanja = $query->paginate(10);
-    
+
         return view('belanja.index', compact('belanja', 'pemasokList'));
         // $belanja = Belanja::all();
         // return view('belanja.index', compact('belanja'));
+    }
+
+    public function addBelanja()
+    {
+        $suppliers = Supplier::all(); // Ambil semua data supplier
+        return view('belanja.add', compact('suppliers'));
     }
 
     /**

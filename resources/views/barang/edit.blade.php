@@ -12,8 +12,9 @@
                 @csrf
                 @method('PUT')
                 <div id="image-preview"
-                class="w-[20%] p-4  mb-2 bg-gray-100 border-dashed border-2 border-gray-400 rounded-lg items-start text-center cursor-pointer">
-                    <input id="upload" type="file" name="image" accept="image/*" class="hidden" required value="{{ asset('storage/' . $barang->image) }}" />
+                    class="w-[20%] p-4  mb-2 bg-gray-100 border-dashed border-2 border-gray-400 rounded-lg items-start text-center cursor-pointer">
+                    <input id="upload" type="file" name="image" accept="image/*" class="hidden" required
+                        value="{{ asset('storage/' . $barang->image) }}" />
                     <div id="preview-content">
                         <label for="upload" class="cursor-pointer">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -57,7 +58,8 @@
                     </div>
 
                     <div class="mb-4 flex items-center gap-2">
-                        <label for="harga_grosir" class="block text-gray-700 font-bold mb-2 w-[7rem]">Harga Grosir</label>
+                        <label for="harga_grosir" class="block text-gray-700 font-bold mb-2 w-[7rem]">Harga
+                            Grosir</label>
                         <input type="number" name="harga_grosir" id="harga_grosir"
                             class="w-full px-3 py-2 border rounded-lg @error('harga_grosir') border-red-500 @enderror"
                             value="{{ $barang->harga_grosir }}" required>
@@ -72,7 +74,7 @@
                             <input type="number" name="hpp" id="hpp"
                                 class="w-full px-3 py-2 border rounded-lg @error('hpp') border-red-500 @enderror"
                                 value="{{ $barang->hpp }}" required>
-                            <button type="button" onclick="toggleHPPVisibility()" id="toggleHPPButton" 
+                            <button type="button" onclick="toggleHPPVisibility()" id="toggleHPPButton"
                                 class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">
                                 Hide
                             </button>
@@ -107,6 +109,11 @@
                         Update
                     </button>
             </form>
+            <form action="">
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                    + Keranjang
+                </button>
+            </form>
         </div>
     </div>
 
@@ -120,7 +127,7 @@
         function toggleHPPVisibility() {
             const hppInput = document.getElementById('hpp');
             const toggleButton = document.getElementById('toggleHPPButton');
-            
+
             if (hppInput.type === 'number') {
                 hppInput.type = 'password';
                 toggleButton.textContent = 'Show';
@@ -129,7 +136,7 @@
                 toggleButton.textContent = 'Hide';
             }
         }
-        
+
         // Add this at the beginning to show existing image
         if ('{{ $barang->image }}') {
             const existingImage = '{{ asset('storage/' . $barang->image) }}';
