@@ -38,7 +38,7 @@
                     <label for="nama" class="block text-gray-700 font-bold mb-2">Nama Barang</label>
                     <input type="text" name="nama" id="nama"
                         class="w-[80%]  px-3  border rounded-lg @error('nama') border-red-500 @enderror"
-                        value="{{ old('nama') }}" required>
+                        placeholder="Input nama barang" required>
                     @error('nama')
                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                     @enderror
@@ -49,7 +49,7 @@
                         <label for="harga" class="block text-gray-700 font-bold mb-2">Harga Satuan</label>
                         <input type="number" name="harga" id="harga"
                             class="w-[80%] px-3  border rounded-lg @error('harga') border-red-500 @enderror"
-                            value="{{ old('harga') }}" required>
+                            value="{{ old('harga') }}" placeholder="Input harga" required>
                         @error('harga')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -59,7 +59,7 @@
                         <label for="harga_grosir" class="block text-gray-700 font-bold mb-2">Harga Grosir</label>
                         <input type="number" name="harga_grosir" id="harga_grosir"
                             class="w-[80%] px-3  border rounded-lg @error('harga_grosir') border-red-500 @enderror"
-                            value="{{ old('harga_grosir') }}" required>
+                            placeholder="Input harga grosir" required>
                         @error('harga_grosir')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -69,7 +69,7 @@
                         <label for="hpp" class="block text-gray-700 font-bold mb-2">Harga Modal</label>
                         <input type="number" name="hpp" id="hpp"
                             class="w-[80%] px-3  border rounded-lg @error('hpp') border-red-500 @enderror"
-                            value="{{ old('hpp') }}" required>
+                            placeholder="Input harga modal" required>
                         @error('hpp')
                             <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                         @enderror
@@ -104,7 +104,6 @@
                     <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
                         Simpan
                     </button>
-
                 </div>
             </form>
         </div>
@@ -126,13 +125,14 @@
             formInputs.forEach(input => {
                 // Store the original value when the page loads
                 const originalValue = input.value;
-
+                console.log(input)
                 input.addEventListener('change', function() {
-                    // Check if value has changed from original
+
                     if (this.value !== originalValue) {
+                        console.log("this.value", this.value);
+                        console.log("originalValue", originalValue);
                         window.isFormDirty = true;
 
-                        // alert('Input field "' + (this.name || this.id) + '" has been changed!');
                     }
                 });
             });
@@ -146,22 +146,19 @@
             }
         });
 
-        document.querySelector('form').addEventListener('submit', () => {
-            isSubmitting = true; // Mark form as submitting
+        // Find this form submission event handler in your code
+        document.querySelector('form').addEventListener('submit', function(e) {
+            isSubmitting = true;
             window.isFormDirty = false;
-        });
-
-        document.querySelectorAll('a, button.cancel-button').forEach(element => {
-            element.addEventListener('click', (e) => {
-                if (window.isFormDirty) {
-                    if (!confirm('You have unsaved changes. Leave anyway?')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                    } else {
-                        window.isFormDirty = false;
-                    }
-                }
-            });
+            console.log('submit triggered')
+            // Validasi gambar
+            if (!uploadInput.files || !uploadInput.files[0]) {
+                e.preventDefault();
+                alert('Harap pilih gambar');
+                isSubmitting = false; 
+                window.isFormDirty = true; 
+                return false;
+            }
         });
 
         uploadInput.addEventListener('change', (event) => {
@@ -202,15 +199,6 @@
             imageContainer.innerHTML = '';
             imagePreview.classList.add('border-dashed', 'border-2', 'border-gray-400');
         }
-
-        document.querySelector('form').addEventListener('submit', function(e) {
-            if (!uploadInput.files || !uploadInput.files[0]) {
-                e.preventDefault();
-                alert('Please select an image');
-                return false;
-            }
-            isFormDirty = false; // Reset the dirty flag on form submission
-        });
 
         // Prevent event bubbling when clicking the file input
         uploadInput.addEventListener('click', (event) => {

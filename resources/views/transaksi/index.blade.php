@@ -70,6 +70,8 @@
                                     <label for="nama" class="block text-white font-bold mb-2">Nama
                                         Barang</label>
                                     <select name="nama" id="nama" class="w-full py-3 pl-5 border">
+                                        {{-- <input type="text" name="search" id="search"
+                                            class="rounded-xl border border-none" placeholder="Cari barang"> --}}
                                         <option value="">Pilih nama barang</option>
                                         @forelse($my_products as $my_product)
                                             <option value="{{ $my_product->nama }}"
@@ -80,7 +82,12 @@
                                         @endforelse
                                     </select>
                                 </div>
+                                {{-- <form action="{{ route('search') }}" method="GET"
+                                    class="flex flex-col gap-4 \">
+                                    <label for="search"
+                                    class="block text-white font-bold mb-2">Cari</label>
 
+                                </form> --}}
                                 <div class="mb-4">
                                     <label for="jumlah" class="block text-white font-bold mb-2">Jumlah
                                         Barang</label>

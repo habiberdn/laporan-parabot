@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('deskripsi');
             $table->string('supplier');
             $table->string('image');
+            $table->enum('stok', ['ada', 'kosong'])->default('ada');
             $table->timestamps();
             $table->softDeletes();
         });
