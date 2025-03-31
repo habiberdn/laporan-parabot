@@ -31,37 +31,31 @@
                     </div>
                     <div
                         class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
-                        <!-- Existing "Tambah Belanja" button -->
-                        <button type="button" onclick="window.location='{{ route('belanja.add') }}'"
-                            class="text-white h-[3rem] w-[9rem] bg-[#00008B] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-xl text-center dark:bg-[#00008B] dark:hover:bg-blue-700 dark:focus:ring-blue-800">
-                            Tambah Belanja
-                        </button>
 
                         <!-- Stock Filter Dropdown -->
-                        <form method="GET" action="{{ route('belanja') }}">
-                            <select name="stok" onchange="this.form.submit()"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                                <option value="#">Filter Stok</option>
-                                <option value="ada" {{ request('stok') === 'ada' ? 'selected' : '' }}>Stok Ada
-                                </option>
-                                <option value="kosong" {{ request('stok') === 'kosong' ? 'selected' : '' }}>Stok Kosong
-                                </option>
-                            </select>
-                        </form>
+                        <form method="GET" action="{{ route('belanja') }}" class="flex gap-2">
+    <!-- Filter Stok -->
+    <select name="stok" onchange="submitForm()" 
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        <option value="">Semua Stok</option> <!-- Ubah value default ke string kosong -->
+        <option value="ada" {{ request('stok') === 'ada' ? 'selected' : '' }}>Stok Ada</option>
+        <option value="kosong" {{ request('stok') === 'kosong' ? 'selected' : '' }}>Stok Kosong</option>
+    </select>
 
-                        <!-- Existing other buttons -->
-                        <form method="GET" action="{{ route('belanja') }}">
-                            <select name="pemasok" onchange="this.form.submit()"
-                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
-                                <option value="">Semua Pemasok</option>
-                                @foreach ($pemasokList as $pemasok)
-                                    <option value="{{ $pemasok }}"
-                                        {{ request('pemasok') == $pemasok ? 'selected' : '' }}>
-                                        {{ $pemasok }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </form>
+    <!-- Filter Pemasok -->
+    <select name="pemasok" onchange="submitForm()"
+        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        <option value="">Semua Pemasok</option>
+        @foreach ($pemasokList as $pemasok)
+            <option value="{{ $pemasok }}" {{ request('pemasok') == $pemasok ? 'selected' : '' }}>
+                {{ $pemasok }}
+            </option>
+        @endforeach
+    </select>
+
+    <!-- Tambahkan ini jika ada input pencarian -->
+ 
+</form>
                         <button x-data="" x-on:click="$dispatch('open-modal', 'default-modal')"
                             class="block h-[3rem] w-[10rem] text-white bg-[#00008B] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-xl px-3 py-2.5 text-center dark:bg-[#00008B] dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                             type="button">
@@ -171,4 +165,11 @@
             </div>
         </div>
     </section>
+    <script>
+    function submitForm() {
+        const stok = document.querySelector('[name="stok"]').value;
+        const pemasok = document.querySelector('[name="pemasok"]').value;
+        window.location.href = "{{ route('belanja') }}?stok=" + stok + "&pemasok=" + pemasok;
+    }
+</script>
 </x-app-layout>

@@ -22,12 +22,12 @@
                     <div class="flex gap-4 items-center">
                         <label for="user">Nama Customer</label>
                         <input type="text" id="user" name="user" placeholder="Input Nama Customer"
-                            class="rounded-xl border border-none" required>
+                            class="rounded-xl border border-none" required value="{{ $transaction->user ?? '' }}">
                     </div>
                     <div class="flex gap-[3.3rem] items-center">
                         <label for="toko">Nama Toko</label>
                         <input type="text" id="toko" name="toko" placeholder="Input Nama Toko"
-                            class="rounded-xl border border-none">
+                            class="rounded-xl border border-none" value="{{ $transaction->toko ?? '' }}">
                     </div>
                 </div>
 
@@ -76,8 +76,7 @@
                                         <option value="">Pilih nama barang</option>
                                         @forelse($my_products as $my_product)
                                             <option value="{{ $my_product->nama }}"
-                                                data-harga-grosir="{{ $my_product->harga_grosir }}"
-                                                data-image="{{ asset('storage/' . $my_product->image) }}">
+                                                data-harga-grosir="{{ $my_product->harga_grosir }}">
                                                 {{ $my_product->nama }}
                                             </option>
                                         @empty
@@ -110,14 +109,6 @@
                                     <input type="number" name="total" id="total" disabled
                                         class="w-full hover:cursor-not-allowed px-3 py-2 border rounded-lg @error('total') border-red-500 @enderror"
                                         value="" readonly>
-                                    @error('total')
-                                        <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div class="mb-4">
-                                    <label for="gambar" class="block text-white font-bold mb-2">Gambar</label>
-                                    <img name="image" id="gambar" alt="" >
-                                    
                                     @error('total')
                                         <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
                                     @enderror
@@ -159,26 +150,38 @@
                                 Total
                             </th>
                             <th scope="col" class="px-6 py-3">
-                                Gambar
-                            </th>
-                            <th scope="col" class="px-6 py-3">
                                 Action
                             </th>
                         </tr>
                     </thead>
                     <tbody>
-
+                        @if ($transaction && $transaction->items->isNotEmpty())
+                            @foreach ($transaction->items as $item)
+                                <tr>
+                                    <td class="px-6 py-4 ">{{ $loop->iteration }}</td>
+                                    <td class="px-6 py-4">{{ $item->nama_barang }}</td>
+                                    <td class="px-6 py-4">Rp {{ number_format($item->harga_grosir, 0, ',', '.') }}
+                                    </td>
+                                    <td class="px-6 py-4">{{ $item->jumlah }}</td>
+                                    <td class="px-6 py-4">Rp {{ number_format($item->total, 0, ',', '.') }}</td>
+                                    <td class="px-6 py-4">
+                                        <button
+                                            class="delete-btn font-medium text-blue-600 dark:text-red-500 hover:underline">
+                                            Delete
+                                        </button>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        @else
+                            <tr>
+                                <td colspan="6" class="text-center">Tidak ada transaksi yang ditemukan.</td>
+                            </tr>
+                        @endif
                     </tbody>
                 </table>
             </div>
         </div>
         <div class="flex gap-4 p-6">
-            <button x-data="" x-on:click="$dispatch('open-modal', 'default-modal')"
-                class="block h-[3rem] w-[10rem] text-white bg-[#00008B] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-xl px-3 py-2.5 text-center dark:bg-[#00008B] dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                type="button">
-                Tambah Item
-            </button>
-
             <form id="pdf-form" method="POST" action="{{ route('cetak.transaksi') }}">
                 @csrf
                 <input type="hidden" name="user" id="pdf-user">
@@ -188,7 +191,7 @@
                     class="text-white h-[3rem] w-[10rem] bg-[#00008B] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-xl text-center dark:bg-[#00008B] dark:hover:bg-blue-700 dark:focus:ring-blue-800">Cetak
                     Transaksi</button>
             </form>
-            <img src="" alt="">
+
             <a href="/riwayat"
                 class="flex items-center justify-center h-12 w-40 text-white bg-[#00008B] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg px-3 py-2.5 dark:bg-[#00008B] dark:hover:bg-blue-700 dark:focus:ring-blue-800 transition-colors duration-200">
                 Riwayat Transaksi
@@ -211,13 +214,14 @@
     });
 
     document.addEventListener('DOMContentLoaded', function() {
-        // Load cart items from localStorage
-        const cart = JSON.parse(localStorage.getItem('shopping_cart')) || [];
+        const tbody = document.querySelector('tbody');
+        const hiddenInputsContainer = document.getElementById('hidden-inputs-container');
+        let itemCounter = 1;
+        let itemIndex = 0;
 
-        // Function to load cart items into the transaction table
         function loadCartItems() {
-            const tbody = document.querySelector('tbody');
-            const hiddenInputsContainer = document.getElementById('hidden-inputs-container');
+            // Ensure tbody exists before manipulation
+            if (!tbody) return;
 
             // Clear existing items
             tbody.innerHTML = '';
@@ -227,19 +231,23 @@
             itemCounter = 1;
             itemIndex = 0;
 
-            // Add each cart item to the table
-            cart.forEach(item => {
-                const total = parseFloat(item.harga_grosir) * parseInt(item.quantity);
+            // Check if there are existing transaction items from the backend
+
+            // If transaction items exist from backend, use those
+            const items = @json($transaction->items ?? []);
+
+            items.forEach((item, index) => {
+                const total = parseFloat(item.total);
                 const formattedHarga = parseFloat(item.harga_grosir).toLocaleString('id-ID');
                 const formattedTotal = total.toLocaleString('id-ID');
 
                 // Create hidden inputs for form submission
                 hiddenInputsContainer.insertAdjacentHTML('beforeend', `
-                <input type="hidden" name="items[${itemIndex}][nama]" value="${item.nama}">
-                <input type="hidden" name="items[${itemIndex}][harga_grosir]" value="${item.harga_grosir}">
-                <input type="hidden" name="items[${itemIndex}][jumlah]" value="${item.quantity}">
-                <input type="hidden" name="items[${itemIndex}][total]" value="${total}">
-            `);
+                        <input type="hidden" name="items[${itemIndex}][nama]" value="${item.nama_barang}">
+                        <input type="hidden" name="items[${itemIndex}][harga_grosir]" value="${item.harga_grosir}">
+                        <input type="hidden" name="items[${itemIndex}][jumlah]" value="${item.jumlah}">
+                        <input type="hidden" name="items[${itemIndex}][total]" value="${total}">
+                    `);
 
                 // Create table row
                 const newRow = document.createElement('tr');
@@ -248,91 +256,235 @@
                 newRow.dataset.itemIndex = itemIndex;
 
                 newRow.innerHTML = `
-                <td class="px-6 py-4">${itemCounter++}</td>
-                <td class="px-6 py-4">${item.nama}</td>
-                <td class="px-6 py-4">Rp ${formattedHarga}</td>
-                <td class="px-6 py-4">${item.quantity}</td>
-                <td class="px-6 py-4">Rp ${formattedTotal}</td>
-                <td class="px-6 py-4 ">
-                    <img src="{{ asset('storage/' . $my_product->image) }}" alt="" class="w-[6rem]">
-                </td>
-
-                <td class="px-6 py-4 flex gap-2">
-                    <button class="delete-btn font-medium text-blue-600 dark:text-red-500 hover:underline">
-                        Delete
-                    </button>
-                </td>
-            `;
+                        <td class="px-6 py-4">${itemCounter++}</td>
+                        <td class="px-6 py-4">${item.nama_barang}</td>
+                        <td class="px-6 py-4">Rp ${formattedHarga}</td>
+                        <td class="px-6 py-4">${item.jumlah}</td>
+                        <td class="px-6 py-4">Rp ${formattedTotal}</td>
+                        <td class="px-6 py-4 flex gap-2">
+                            <button class="delete-btn font-medium text-blue-600 dark:text-red-500 hover:underline">
+                                Delete
+                            </button>
+                        </td>
+                    `;
 
                 tbody.appendChild(newRow);
-                itemIndex++;
 
                 // Add delete functionality
                 newRow.querySelector('.delete-btn').addEventListener('click', function() {
                     const row = this.closest('tr');
                     const index = parseInt(row.dataset.itemIndex);
 
-                    // Remove from cart array
-                    cart.splice(index, 1);
+                    // Remove the corresponding hidden inputs
+                    document.querySelectorAll(
+                        `#hidden-inputs-container input[name^="items[${index}]"]`).forEach(
+                        input => input.remove());
 
-                    // Update localStorage
-                    localStorage.setItem('shopping_cart', JSON.stringify(cart));
-
-                    // Reload cart items in the table
-                    loadCartItems();
+                    // Remove the row
+                    row.remove();
+                    updateRowNumbers();
                 });
+
+                itemIndex++;
+            });
+
+
+            // If no items, show default message
+            if (tbody.children.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center">Tidak ada transaksi yang ditemukan.</td>
+                    </tr>
+                `;
+            }
+
+            // Restore the Cetak Transaksi and PDF generation logic
+            updatePDFFormInputs();
+        }
+
+        // Function to update PDF form inputs
+        function updatePDFFormInputs() {
+            const pdfUserInput = document.getElementById('pdf-user');
+            const pdfTokoInput = document.getElementById('pdf-toko');
+            const pdfItemsContainer = document.getElementById('pdf-items-container');
+
+            if (pdfUserInput) pdfUserInput.value = document.getElementById('user').value;
+            if (pdfTokoInput) pdfTokoInput.value = document.getElementById('toko').value;
+
+            // Clear previous PDF items
+            if (pdfItemsContainer) pdfItemsContainer.innerHTML = '';
+
+            // Copy hidden inputs for PDF generation
+            const hiddenInputs = document.querySelectorAll('#hidden-inputs-container input');
+            hiddenInputs.forEach(input => {
+                if (pdfItemsContainer) {
+                    const clonedInput = input.cloneNode(true);
+                    pdfItemsContainer.appendChild(clonedInput);
+                }
             });
         }
 
-        // Load cart items when page loads
-        loadCartItems();
+        // Delay loading to ensure DOM is fully ready
+        setTimeout(loadCartItems, 100);
 
-        // Handle form submission for saving transaction
-        document.querySelector('form[action*="/save-transaksi"]').addEventListener('submit', function(e) {
-            // Clear the cart after successful submission
-            // This should be done on successful submission, possibly in a callback
-            localStorage.removeItem('shopping_cart');
-        });
-
-        // Add new function to handle "Tambah Item" button - integrate with existing code
-        const existingAddItemToTable = window.addItemToTable;
-
-        window.addItemToTable = function() {
-            existingAddItemToTable();
-
-            // Update cart in localStorage based on the current table
-            updateCartFromTable();
-        };
-
-        // Function to update cart from the current table
-        function updateCartFromTable() {
-            const rows = document.querySelectorAll('tbody tr');
-            const updatedCart = [];
-
-            rows.forEach((row, index) => {
-                const cells = row.querySelectorAll('td');
-                const productName = cells[1].textContent;
-                const hargaGrosir = parseFloat(cells[2].textContent.replace('Rp ', '').replace(/\./g,
-                    '').replace(',', '.'));
-                const quantity = parseInt(cells[3].textContent);
-
-                updatedCart.push({
-                    id: index.toString(), // Use index as ID since we don't have the original ID
-                    nama: productName,
-                    harga_grosir: hargaGrosir,
-                    quantity: quantity
-                });
+        // Form submission handler
+        const form = document.querySelector('form[action*="/save-transaksi"]');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Clear the cart after successful submission
+                localStorage.removeItem('shopping_cart');
             });
+        }
 
-            localStorage.setItem('shopping_cart', JSON.stringify(updatedCart));
+        // Restore Cetak Transaksi button functionality
+        const cetakTransaksiBtn = document.getElementById('cetak-transaksi-btn');
+        if (cetakTransaksiBtn) {
+            cetakTransaksiBtn.addEventListener('click', function() {
+                // Check if there are items to print
+                const itemInputs = document.querySelectorAll('#hidden-inputs-container input');
+                if (itemInputs.length === 0) {
+                    alert('Tambahkan item terlebih dahulu sebelum mencetak!');
+                    return;
+                }
+
+                // Update PDF form inputs
+                updatePDFFormInputs();
+
+                // Submit the form
+                document.getElementById('pdf-form').submit();
+            });
         }
     });
 
-    // Add this after the existing code
+    // Product selection and total calculation
+    document.getElementById('nama').addEventListener('change', function() {
+        // Get selected product's harga_grosir
+        const selectedOption = this.options[this.selectedIndex];
+        const hargaGrosir = selectedOption.getAttribute('data-harga-grosir');
+
+        console.log('Selected option:', selectedOption);
+        console.log('Harga grosir value:', hargaGrosir);
+
+        // Update harga_grosir input
+        document.getElementById('harga_grosir').value = hargaGrosir;
+
+        // Recalculate total if jumlah has a value
+        calculateTotal();
+    });
+
+    $(document).ready(function() {
+        $('.js-example-basic-single').select2().on('change', function() {
+            // Get selected option
+            const selectedOption = $(this).find('option:selected');
+            const hargaGrosir = selectedOption.data('harga-grosir');
+
+            console.log('Selected product:', selectedOption.text());
+            console.log('Harga grosir:', hargaGrosir);
+
+            // Update harga_grosir input using jQuery (which might be more reliable)
+            $('#harga_grosir').val(hargaGrosir);
+
+            // Recalculate total
+            calculateTotal();
+        });
+    });
+
+    document.getElementById('jumlah').addEventListener('input', calculateTotal);
+
+    function calculateTotal() {
+        const jumlah = parseFloat(document.getElementById('jumlah').value) || 0;
+        const hargaGrosir = parseFloat(document.getElementById('harga_grosir').value) || 0;
+        const total = jumlah * hargaGrosir;
+
+        document.getElementById('total').value = total;
+    }
+
+    function addItemToTable() {
+        const selectedProduct = document.getElementById('nama');
+        const selectedOption = selectedProduct.options[selectedProduct.selectedIndex];
+
+        // Get values
+        const productName = selectedOption.value;
+        const hargaGrosir = parseFloat(selectedOption.getAttribute('data-harga-grosir')) || 0;
+        const quantity = parseFloat(document.getElementById('jumlah').value) || 0;
+        const total = hargaGrosir * quantity;
+
+        // Validation
+        if (!productName || quantity <= 0) {
+            alert('Please select a product and enter quantity');
+            return;
+        }
+
+        // Create table row
+        const tbody = document.querySelector('tbody');
+        const newRow = document.createElement('tr');
+        newRow.className =
+            'odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700 border-gray-200';
+
+        // Format numbers
+        const formattedHarga = hargaGrosir.toLocaleString('id-ID');
+        const formattedTotal = total.toLocaleString('id-ID');
+        const container = document.getElementById('hidden-inputs-container');
+
+        container.insertAdjacentHTML('beforeend', `
+            <input type="hidden" name="items[${itemIndex}][nama]" value="${productName}">
+            <input type="hidden" name="items[${itemIndex}][harga_grosir]" value="${hargaGrosir}">
+            <input type="hidden" name="items[${itemIndex}][jumlah]" value="${quantity}">
+            <input type="hidden" name="items[${itemIndex}][total]" value="${total}">`);
+
+        newRow.dataset.itemIndex = itemIndex;
+        newRow.innerHTML = `
+            <td class="px-6 py-4">${itemCounter++}</td>
+            <td class="px-6 py-4">${productName}</td>
+            <td class="px-6 py-4">Rp ${formattedHarga}</td>
+            <td class="px-6 py-4">${quantity}</td>
+            <td class="px-6 py-4">Rp ${formattedTotal}</td>
+            <td class="px-6 py-4 flex gap-2">
+                <button class="delete-btn font-medium text-blue-600 dark:text-red-500 hover:underline">
+                    Delete
+                </button>
+            </td>`;
+
+        tbody.appendChild(newRow);
+
+        // Add delete functionality
+        newRow.querySelector('.delete-btn').addEventListener('click', function() {
+            const row = this.closest('tr');
+            const index = row.dataset.itemIndex;
+
+            // Hapus input hidden
+            document.querySelectorAll(`input[name^="items[${index}]"]`).forEach(input => input.remove());
+
+            row.remove();
+            updateRowNumbers();
+        });
+
+        // Increment item index
+        itemIndex++;
+
+        // Clear form
+        selectedProduct.selectedIndex = 0;
+        document.getElementById('jumlah').value = '';
+        document.getElementById('harga_grosir').value = '';
+        document.getElementById('total').value = '';
+
+        // Close modal
+        document.querySelector('[x-on\\:click="show = false"]').click();
+    }
+
+    function updateRowNumbers() {
+        const rows = document.querySelectorAll('tbody tr');
+        itemCounter = 1;
+        rows.forEach(row => {
+            row.querySelector('td:first-child').textContent = itemCounter++;
+        });
+    }
+
+    // Form change tracking
     $(document).ready(function() {
         var formChanged = false;
 
-        // Track changes in form inputs - fix the selector to match your form class
+        // Track changes in form inputs
         $('.form-article input, .form-article select, .form-article textarea').on('input change', function() {
             formChanged = true;
         });
@@ -362,159 +514,5 @@
                 return message; // This is needed for older browsers
             }
         });
-    });
-
-    document.getElementById('nama').addEventListener('change', function() {
-        // Get selected product's harga_grosir
-        const selectedOption = this.options[this.selectedIndex];
-        const hargaGrosir = selectedOption.getAttribute('data-harga-grosir');
-        const imageUrl = selectedOption.getAttribute('data-image');
-
-        console.log('Selected option:', selectedOption);
-        console.log('Harga grosir value:', hargaGrosir);
-        console.log('Image URL:', imageUrl);
-        const imageElement = document.getElementById('gambar');
-        imageElement.src = imageUrl; // Set the image source to the selected product's image
-        imageElement.alt = selectedOption.text;
-
-        // Update harga_grosir input
-        document.getElementById('harga_grosir').value = hargaGrosir;
-
-        // Recalculate total if jumlah has a value
-        calculateTotal();
-    });
-
-    $(document).ready(function() {
-        $('.js-example-basic-single').select2().on('change', function() {
-            // Get selected option
-            const selectedOption = $(this).find('option:selected');
-            const hargaGrosir = selectedOption.data('harga-grosir');
-
-            console.log('Selected product:', selectedOption.text());
-            console.log('Harga grosir:', hargaGrosir);
-            console.log("selected data", selectedOption.data());
-
-            // Update harga_grosir input using jQuery (which might be more reliable)
-            $('#harga_grosir').val(hargaGrosir);
-
-            // Recalculate total
-            calculateTotal();
-        });
-    });
-
-    document.getElementById('jumlah').addEventListener('input', calculateTotal);
-
-    function calculateTotal() {
-        const jumlah = parseFloat(document.getElementById('jumlah').value) || 0;
-        const hargaGrosir = parseFloat(document.getElementById('harga_grosir').value) || 0;
-        const total = jumlah * hargaGrosir;
-
-        document.getElementById('total').value = total;
-    }
-
-    let itemCounter = 1;
-    let itemIndex = 0;
-
-    function addItemToTable() {
-        const selectedProduct = document.getElementById('nama');
-        const selectedOption = selectedProduct.options[selectedProduct.selectedIndex];
-
-        // Get values
-        const productName = selectedOption.value;
-        const hargaGrosir = parseFloat(selectedOption.getAttribute('data-harga-grosir')) || 0;
-        const quantity = parseFloat(document.getElementById('jumlah').value) || 0;
-        const total = hargaGrosir * quantity;
-
-        // Validation
-        if (!productName || quantity <= 0) {
-            alert('Please select a product and enter quantity');
-            return;
-        }
-
-        // Create table row
-        const tbody = document.querySelector('tbody');
-        const newRow = document.createElement('tr');
-        newRow.className =
-            'odd:bg-white odd:dark:bg-gray-900 even:bg-gray-50 even:dark:bg-gray-800 border-b dark:border-gray-700 border-gray-200';
-
-        // Format numbers
-        const formattedHarga = hargaGrosir.toLocaleString('id-ID');
-        const formattedTotal = total.toLocaleString('id-ID');
-        const container = document.getElementById('hidden-inputs-container');
-        const itemPrefix = `items[${itemIndex}]`;
-
-        container.insertAdjacentHTML('beforeend', `
-        <input type="hidden" name="items[${itemIndex}][nama]" value="${productName}">
-    <input type="hidden" name="items[${itemIndex}][harga_grosir]" value="${hargaGrosir}">
-    <input type="hidden" name="items[${itemIndex}][jumlah]" value="${quantity}">
-    <input type="hidden" name="items[${itemIndex}][total]" value="${total}">`);
-
-        itemIndex++;
-        newRow.innerHTML = `
-        <td class="px-6 py-4">${itemCounter++}</td>
-        <td class="px-6 py-4">${productName}</td>
-        <td class="px-6 py-4">Rp ${formattedHarga}</td>
-        <td class="px-6 py-4">${quantity}</td>
-        <td class="px-6 py-4">Rp ${formattedTotal}</td>
-        <td class="px-6 py-4 flex gap-2">
-            <button class="delete-btn font-medium text-blue-600 dark:text-red-500 hover:underline">
-                Delete
-            </button>
-         
-        </td>`;
-
-        tbody.appendChild(newRow);
-
-        // Add delete functionality
-        newRow.querySelector('.delete-btn').addEventListener('click', function() {
-            const row = this.closest('tr');
-            const index = row.dataset.itemIndex;
-
-            // Hapus input hidden
-            document.querySelectorAll(`input[name^="items[${index}]"]`).forEach(input => input.remove());
-
-            row.remove();
-            updateRowNumbers();
-        });
-        // Clear form
-        selectedProduct.selectedIndex = 0;
-        document.getElementById('jumlah').value = '';
-        document.getElementById('harga_grosir').value = '';
-        document.getElementById('total').value = '';
-
-        // Close modal
-        document.querySelector('[x-on\\:click="show = false"]').click();
-    }
-
-    function updateRowNumbers() {
-        const rows = document.querySelectorAll('tbody tr');
-        itemCounter = 1;
-        rows.forEach(row => {
-            row.querySelector('td:first-child').textContent = itemCounter++;
-        });
-    }
-
-    document.getElementById('cetak-transaksi-btn').addEventListener('click', function() {
-        // Check if there are items to print
-        const itemInputs = document.querySelectorAll('#hidden-inputs-container input');
-        if (itemInputs.length === 0) {
-            alert('Tambahkan item terlebih dahulu sebelum mencetak!');
-            return;
-        }
-
-        // Copy user and toko values
-        document.getElementById('pdf-user').value = document.getElementById('user').value;
-        document.getElementById('pdf-toko').value = document.getElementById('toko').value;
-
-        // Copy all hidden inputs from items
-        const pdfItemsContainer = document.getElementById('pdf-items-container');
-        pdfItemsContainer.innerHTML = '';
-
-        itemInputs.forEach(input => {
-            pdfItemsContainer.appendChild(input.cloneNode(true));
-        });
-
-        // Submit the form
-        document.getElementById('pdf-form').submit();
     });
 </script>

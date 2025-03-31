@@ -21,6 +21,7 @@ class Barang extends Model
         'hpp',
         'supplier',
         'deskripsi',
-        'image'
+        'image',
+        'stok'
     ];
 }

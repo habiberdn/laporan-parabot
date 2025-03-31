@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Intervention\Image\Drivers\Gd\Driver;
 use Illuminate\Support\Facades\Storage;
 use App\Models\supplier;
+use App\Models\Barang;
+use App\Http\Controllers;
+
 
 class BelanjaController extends Controller
 {
@@ -16,33 +19,32 @@ class BelanjaController extends Controller
      * Display a listing of the resource.
      */
     public function index(Request $request)
-    {
-        $query = Belanja::query();
+{
+    $query = Belanja::query();
 
-        // Search filter
-        if ($request->has('search')) {
-            $query->where('nama_barang', 'like', '%' . $request->search . '%');
-        }
-
-        // Stock filter
-        if ($request->has('stok') && in_array($request->stok, ['ada', 'kosong'])) {
-            $query->where('stok', $request->stok);
-        }
-
-        // Pemasok filter
-        if ($request->has('pemasok') && $request->pemasok != '') {
-            $query->where('pemasok', $request->pemasok);
-        }
-
-        // Get unique pemasok list for dropdown
-        $pemasokList = Belanja::distinct()->pluck('pemasok');
-
-        $belanja = $query->paginate(10);
-
-        return view('belanja.index', compact('belanja', 'pemasokList'));
-        // $belanja = Belanja::all();
-        // return view('belanja.index', compact('belanja'));
+    // Filter Stok (hanya aktif jika parameter 'stok' ada dan bukan 'semua')
+    if ($request->filled('stok') && $request->stok !== 'semua') {
+        $query->where('stok', $request->stok);
     }
+
+    // Filter Pencarian
+    if ($request->filled('search')) {
+        $query->where('nama_barang', 'like', '%' . $request->search . '%');
+    }
+
+    // Filter Pemasok
+    if ($request->filled('pemasok')) {
+        $query->where('pemasok', $request->pemasok);
+    }
+
+    // Ambil daftar pemasok unik
+    $pemasokList = Belanja::distinct()->pluck('pemasok');
+
+    // Eksekusi query
+    $belanja = $query->get();
+
+    return view('belanja.index', compact('belanja', 'pemasokList'));
+}
 
     public function addBelanja()
     {
@@ -62,7 +64,7 @@ class BelanjaController extends Controller
     {
         try {
             // Update all records using Eloquent
-            Belanja::query()->update(['stok' => 'kosong']);
+            Belanja::query()->update(['stok' => 'ada']);
 
             return redirect()->back()
                 ->with('success', 'Semua stok berhasil direset ke status kosong');

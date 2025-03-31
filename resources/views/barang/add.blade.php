@@ -7,7 +7,7 @@
 
     <div class=" mx-auto p-6 flex  w-full">
         <div class="bg-white rounded-lg flex flex-col w-full shadow-lg p-6 ">
-            <form action="{{ url('/save-barang') }}" method="POST" enctype="multipart/form-data">
+            <form action="{{ url('/save-barang') }}" method="POST" enctype="multipart/form-data" class="article-form">
                 @csrf
                 <div id="image-preview"
                     class="w-[20%] p-4  mb-2 bg-gray-100 border-dashed border-2 border-gray-400 rounded-lg items-start text-center cursor-pointer">
@@ -109,43 +109,53 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script>
+          $(document).ready(function() {
+            var formChanged = false;    
+            $('.article-form input, .article-form select,  .article-form textarea').on('input change', function() {
+                formChanged = true;
+            });
+         
+            $('.article-form').submit(function() {
+                formChanged = false;
+            });
+           
+            $(window).on('beforeunload', function() {        
+                if (formChanged) {
+                    return 'Changes you made may not be saved.';
+                }
+            });
+        });
         const uploadInput = document.getElementById('upload');
         const filenameLabel = document.getElementById('filename');
         const imagePreview = document.getElementById('image-preview');
         const previewContent = document.getElementById('preview-content');
         const imageContainer = document.getElementById('image-container');
-        let isSubmitting = false;
-        window.isFormDirty = false; // Flag to track if the form has unsaved changes
+        // let isSubmitting = false;
+        // window.isFormDirty = false; // Flag to track if the form has unsaved changes
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const formInputs = document.querySelectorAll('input, textarea', 'option', 'select');
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const formInputs = document.querySelectorAll('input, textarea', 'option', 'select');
 
-            // Add change event listener to each input
-            formInputs.forEach(input => {
-                // Store the original value when the page loads
-                const originalValue = input.value;
-                console.log(input)
-                input.addEventListener('change', function() {
+        //     // Add change event listener to each input
+        //     formInputs.forEach(input => {
+        //         // Store the original value when the page loads
+        //         const originalValue = input.value;
+        //         console.log(input)
+        //         input.addEventListener('change', function() {
 
-                    if (this.value !== originalValue) {
-                        console.log("this.value", this.value);
-                        console.log("originalValue", originalValue);
-                        window.isFormDirty = true;
+        //             if (this.value !== originalValue) {
+        //                 console.log("this.value", this.value);
+        //                 console.log("originalValue", originalValue);
+        //                 window.isFormDirty = true;
 
-                    }
-                });
-            });
-        });
+        //             }
+        //         });
+        //     });
+        // });
 
-        window.addEventListener('beforeunload', (e) => {
-            if (!isSubmitting && window.isFormDirty) {
-                e.preventDefault();
-                e.returnValue = '';
-                return '';
-            }
-        });
-
+     
         // Find this form submission event handler in your code
         document.querySelector('form').addEventListener('submit', function(e) {
             isSubmitting = true;

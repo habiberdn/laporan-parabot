@@ -6,6 +6,8 @@ use App\Http\Controllers\TransaksiController;
 use App\Http\Controllers\BelanjaController;
 use App\Http\Controllers\SupplierController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\KeranjangController;
+
 
 Route::get('/', function () {
     return view('auth.login');
@@ -19,6 +21,8 @@ Route::get('/search', [BarangController::class, 'search'])->name('search');
 
 Route::get('/transaksi', [TransaksiController::class, 'index'])->name('transaksi');
 Route::get('/riwayat', [TransaksiController::class, 'riwayat'])->name('transaksi-riwayat');
+Route::get('/details', [TransaksiController::class, 'details'])->name('details');
+
 
 
 Route::get('/dashboard', [BarangController::class, 'index'])
@@ -43,6 +47,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/keranjang', [KeranjangController::class, 'index'])->name('keranjang.index');
+    
+    // Add to cart
+    Route::post('/keranjang/add', [KeranjangController::class, 'addToCart'])->name('keranjang.add');
+    
+    // Update cart item
+    Route::put('/keranjang/{id}', [KeranjangController::class, 'update'])->name('keranjang.update');
+    
+    // Remove from cart
+    Route::delete('/keranjang/{id}', [KeranjangController::class, 'destroy'])->name('keranjang.destroy');
 });
 Route::post('/belanja/reset-stok', [BelanjaController::class, 'reset'])
     ->name('belanja.reset');
@@ -51,6 +66,9 @@ Route::post('/save-transaksi', [TransaksiController::class, 'store']); // Add a 
 Route::post('/save-belanja', [BelanjaController::class, 'store'])->name('belanja.store');
 Route::post('/save-supplier', [SupplierController::class, 'store'])->name('supplier.store');
 
+Route::get('cart', [BarangController::class, 'viewCart'])->name('cart.view');
+Route::get('add-to-cart/{id}', [BarangController::class, 'addToCart'])->name('cart.add');
+Route::get('remove-from-cart/{id}', [BarangController::class, 'removeFromCart'])->name('cart.remove');
 
 //route page
 Route::get('/tambah-barang', [BarangController::class, 'getSupplier'])->name('barang.add');

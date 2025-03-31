@@ -15,6 +15,8 @@
                     <th scope="col" class="px-6 py-3">Total</th>
                     <th scope="col" class="px-6 py-3">User</th>
                     <th scope="col" class="px-6 py-3">Toko</th>
+                    <th scope="col" class="px-6 py-3">Aksi</th>
+
                 </tr>
             </thead>
             <tbody>
@@ -33,7 +35,15 @@
                                     {{ $transaction->user }}</td>
                                 <td class="px-6 py-4" rowspan="{{ count($transaction->items) }}">
                                     {{ $transaction->toko }}</td>
+                                    <td class="px-6 py-4" rowspan="{{ count($transaction->items) }}">
+                                        <button
+                                            class="h-[3rem] w-[10rem] text-white bg-[#00008B] hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-xl px-3 py-2.5 transition-colors duration-200 dark:bg-[#00008B] dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                                            type="button" onclick="window.location.href='{{ url('/details?transaction_id=' . $transaction->id) }}'">
+                                            Details
+                                        </button>
+                                    </td>
                             @endif
+
                         </tr>
                     @endforeach
                 @endforeach

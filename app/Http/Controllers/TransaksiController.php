@@ -7,20 +7,35 @@ use Illuminate\Http\Request;
 use App\Models\Barang;
 use App\Models\TransaksiItem;
 use Illuminate\Support\Facades\DB;
-use Spatie\LaravelPdf\Facades\Pdf;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TransaksiController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         $my_products = Barang::all();
+    
+        // Check if transaction_id is present in the request
+       
+        // dd($transaction->items[0] );
+        // Return the view with the products and transaction data
         return view('transaksi.index', compact('my_products'));
     }
 
-    public function riwayat(Request $request) {
+     public function details(Request $request){
+        $my_products = Barang::all();
+        if ($request->has('transaction_id')) {
+            // Fetch the transaction with its associated items
+            $transaction = Transaksi::with('items')->find($request->input('transaction_id'));
+        }
+        return view('transaksi.riwayat2', compact('transaction','my_products'));
+     }
+
+    public function riwayat(Request $request)
+    {
         $transactions = Transaksi::with('items')->latest()->get();
         return view('transaksi.riwayat', compact('transactions'));
     }
@@ -41,7 +56,7 @@ class TransaksiController extends Controller
         $toko = $request->input('toko');
         $items = $request->input('items', []);
 
-        return Pdf::view('transaksi.pdf', [
+        return Pdf::loadView('transaksi.pdf', [
             'user' => $user,
             'toko' => $toko,
             'items' => $items,
